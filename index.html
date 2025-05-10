@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barbería Barba´ros</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- jsPDF para generar PDF (añadir si no la tienes) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <!-- Font Awesome para iconos (opcional, pero usado en los ejemplos) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Estilos adicionales o overrides si son necesarios */
+        .gestion-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--padding-sm) 0; /* Reducir padding vertical */
+            border-bottom: 1px solid var(--grey-border);
+        }
+        .gestion-item:last-child {
+            border-bottom: none;
+        }
+        .gestion-item .item-name {
+            flex-grow: 1;
+            margin-right: var(--margin-sm);
+        }
+        .gestion-item .item-actions {
+            display: flex;
+            gap: var(--margin-xs);
+        }
+        .metodo-pago-seleccion {
+            border: 1px solid var(--grey-border);
+            padding: var(--padding-sm);
+            border-radius: var(--border-radius-sm);
+            background-color: var(--grey-light);
+        }
+        .detalles-pago-adicional input {
+            margin-bottom: var(--margin-xs) !important;
+        }
+        .corte-finalizado-item {
+            border-bottom: 1px dashed var(--grey-border);
+            padding-bottom: var(--padding-sm);
+            margin-bottom: var(--padding-sm) !important;
+        }
+        .corte-finalizado-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body class="login-active-background"> <!-- Inicia con el fondo de login -->
+
+    <!-- Sección de Login -->
+    <div id="login-section">
+        <!-- Logo de la Barbería -->
+        <div class="login-logo-container">
+            <img src="images/logo.png" alt="Logo Barbería Barba´ros" id="login-logo">
+        </div>
+        <h2 style="margin-bottom: var(--margin-xl);">Barbería Barba´ros</h2>
+        <form id="loginForm">
+            <div class="input-group">
+                <i class="fas fa-user input-icon"></i>
+                <input type="text" id="username" name="username" required class="form-input form-input-lg" placeholder="Usuario">
+            </div>
+            <div class="input-group">
+                <i class="fas fa-lock input-icon"></i>
+                <input type="password" id="password" name="password" required class="form-input form-input-lg" placeholder="Contraseña">
+                <i class="fas fa-eye password-toggle-icon" id="togglePassword"></i>
+            </div>
+            <button type="submit" class="button button-primary button-lg button-block" style="margin-top: 20px;">Ingresar</button>
+        </form>
+        <div id="loginErrorMessage" class="error-message hidden"></div>
+    </div>
+
+    <!-- Sección Principal de la Aplicación (Oculta por defecto) -->
+    <div id="app-section" class="hidden">
+        <!-- Barra Superior -->
+        <div id="top-bar">
+            <button id="sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false" title="Expandir/Colapsar menú lateral">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="app-title-container">
+                <img src="images/logo.png" alt="Logo Barbería" id="top-bar-logo">
+                <div id="app-title">Barbería Barba´ros</div>
+            </div>
+            <div class="top-bar-right">
+                <div id="user-info">Usuario: <span id="loggedInUser"></span> (<span id="loggedInUserRole"></span>)</div>
+                <div id="dolar-bcv">BCV: <span id="tasaUSDBcv">Cargando...</span> Bs/USD</div>
+                <div id="datetime"></div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div id="sidebar">
+            <button id="showCajaButton" class="button-sidebar" aria-label="Caja" title="Abrir panel de Caja">
+                <i class="fas fa-cash-register icon"></i> <span>Caja</span>
+            </button>
+            <button id="showGestionBarberos" class="button-sidebar" aria-label="Barberos y Cortes" title="Gestionar barberos y tipos de corte">
+                <i class="fas fa-cut icon"></i> <span>Barberos y Cortes</span>
+            </button>
+            <button id="showGestionUsuarios" class="button-sidebar" aria-label="Gestión Usuarios" title="Administrar usuarios del sistema">
+                <i class="fas fa-users-cog icon"></i> <span>Usuarios</span>
+            </button>
+            <button id="showReportes" class="button-sidebar" aria-label="Reportes" title="Ver reportes de ventas y actividad">
+                <i class="fas fa-chart-line icon"></i> <span>Reportes</span>
+            </button>
+            <button id="showConfiguracion" class="button-sidebar" aria-label="Configuración" title="Ajustar configuración general">
+                <i class="fas fa-cog icon"></i> <span>Configuración</span>
+            </button>
+            <button id="logoutButton" class="button-sidebar" aria-label="Cerrar Sesión" title="Cerrar la sesión actual">
+                <i class="fas fa-sign-out-alt icon"></i> <span>Cerrar Sesión</span>
+            </button>
+        </div>
+
+        <!-- Contenido Principal -->
+        <div id="main-content">
+            <!-- Dashboard (Contenido por defecto) -->
+            <div id="dashboardContent" class="panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h2 class="panel-title" style="margin-bottom: 0;"><i class="fas fa-cash-register"></i> Caja</h2>
+                    <div>
+                        <button id="abrirCajaButton" class="button button-success button-sm" title="Iniciar operaciones de caja del día"><i class="fas fa-door-open"></i> Abrir Caja</button>
+                        <button id="cerrarCajaButton" class="button button-danger button-sm" title="Finalizar operaciones y generar reporte de cierre"><i class="fas fa-door-closed"></i> Cerrar Caja</button>
+                    </div>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <button id="openAddClientModalFromCaja" class="button button-primary" title="Registrar un nuevo cliente"><i class="fas fa-user-plus"></i> Agregar Cliente</button>
+                </div>
+                <div id="barberos-linea">
+                    <!-- Las estaciones de los barberos se generarán aquí por JS -->
+                </div>
+                <hr>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <!-- <div id="colaEspera" style="flex: 1; min-width: 300px;">
+                        <h3><i class="fas fa-clock"></i> Clientes en Cola de Espera (<span id="contadorColaEspera">0</span>)</h3>
+                        <ul id="listaColaEspera">
+                            Clientes en espera se listarán aquí
+                        </ul>
+                    </div> -->
+                    <div id="colaClientes" style="flex: 1; min-width: 300px;">
+                        <h3><i class="fas fa-chair"></i> Clientes Atendiéndose (<span id="contadorClientesAtendiendo">0</span>)</h3>
+                        <ul id="listaClientesAtendiendo">
+                            <!-- Clientes atendiéndose se listarán aquí -->
+                        </ul>
+                    </div>
+                </div>
+                <hr>
+                <div id="cortesFinalizadosHoy" style="margin-top: 20px;">
+                    <h3><i class="fas fa-history"></i> Cortes Finalizados Hoy</h3>
+                    <div id="totalAtendiendoBs" style="margin-bottom: 10px; font-weight: bold; font-size: 1.1em;"></div>
+                    <ul id="listaCortesFinalizadosHoy">
+                        <!-- Cortes finalizados se listarán aquí -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Gestión de Barberos (Oculto por defecto) -->
+            <div id="gestionBarberosPanel" class="panel hidden">
+                <h2 class="panel-title"><i class="fas fa-cut"></i> Barberos y Cortes</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <form id="nuevoBarberoForm" style="display: flex; gap: 5px;">
+                        <input type="text" id="nombreNuevoBarbero" placeholder="Nombre del nuevo barbero" required class="form-input form-input-md" title="Ingrese el nombre del barbero">
+                        <button type="submit" class="button button-success" title="Añadir este barbero a la lista"><i class="fas fa-plus"></i> Agregar Barbero</button>
+                    </form>
+                    <button id="openGestionTiposCorteModalButton" class="button button-secondary" title="Abrir ventana para administrar los tipos de corte y sus precios"><i class="fas fa-tags"></i> Gestionar Tipos de Corte</button>
+                </div>
+                <h3>Barberos Actuales:</h3>
+                <ul id="listaBarberosGestion">
+                    <!-- Lista de barberos para gestión se generará aquí por JS con sus 'title' -->
+                </ul>
+            </div>
+
+            <!-- Gestión de Usuarios (Oculto por defecto) -->
+            <div id="gestionUsuariosPanel" class="panel hidden">
+                <h2 class="panel-title"><i class="fas fa-users-cog"></i> Gestión de Usuarios</h2>
+                <form id="nuevoUsuarioForm" style="margin-bottom: 20px;">
+                    <input type="text" id="usernameNuevoUsuario" placeholder="Nombre de usuario" required class="form-input form-input-md" title="Nombre de usuario para iniciar sesión">
+                    <input type="password" id="passwordNuevoUsuario" placeholder="Contraseña" required class="form-input form-input-md" title="Contraseña para el nuevo usuario">
+                    <select id="rolNuevoUsuario" class="form-select form-input-md" title="Seleccione el rol del usuario">
+                        <option value="cajero">Cajero</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    <button type="submit" class="button button-success" title="Crear nuevo usuario"><i class="fas fa-user-plus"></i> Agregar Usuario</button>
+                </form>
+                <h3>Usuarios Existentes:</h3>
+                <ul id="listaUsuariosGestion">
+                    <!-- Lista de usuarios se generará aquí -->
+                </ul>
+            </div>
+
+            <!-- Reportes (Oculto por defecto) -->
+            <div id="reportesPanel" class="panel hidden">
+                <h2 class="panel-title"><i class="fas fa-chart-line"></i> Reportes</h2>
+                <div class="report-container">
+                    <label for="reportType" class="form-label">Tipo de Reporte:</label>
+                    <select id="reportType" class="form-select form-input-md">
+                        <option value="ventasDia">Ventas del Día</option>
+                        <option value="ventasBarbero">Ventas por Barbero</option>
+                    </select>
+                    <label for="reportDate" class="form-label">Fecha:</label>
+                    <input type="date" id="reportDate" class="form-input form-input-md">
+                    <label for="reportBarbero" class="form-label hidden">Barbero:</label>
+                    <select id="reportBarbero" class="form-select form-input-md hidden">
+                        <!-- Opciones de barbero se llenarán aquí -->
+                    </select>
+                    <button id="generateReportButton" class="button button-primary" title="Generar el reporte seleccionado">Generar Reporte</button>
+                </div>
+                <div id="reporteResultados" style="margin-top: 20px;">
+                    <!-- Resultados del reporte se mostrarán aquí -->
+                </div>
+                <hr>
+                <div id="reporteCierreCajaContainer" style="margin-top: 20px;">
+                    <h4><i class="fas fa-file-invoice-dollar"></i> Reporte de Cierre de Caja</h4>
+                    <div id="reporteCierreCajaResultados">
+                        <!-- La tabla generada por JS para el cierre de caja también debería ir dentro de un div.table-responsive-container -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuración (Oculto por defecto) -->
+            <div id="configuracionPanel" class="panel hidden">
+                <h2 class="panel-title"><i class="fas fa-cog"></i> Configuración General</h2>
+                <div>
+                    <label for="precioCorteGeneralConfig" class="form-label">Precio General del Corte (USD) por Defecto:</label>
+                    <input type="number" id="precioCorteGeneralConfig" step="0.01" class="form-input form-input-md" title="Precio que se usará si no se selecciona un tipo de corte específico">
+                    <button id="guardarPrecioCorteGeneral" class="button button-primary" title="Guardar este precio como predeterminado">Guardar Precio</button>
+                </div>
+                 <div id="configMessages" class="message" style="margin-top: 15px;"></div>
+            </div>
+
+        </div> <!-- Fin Main Content -->
+    </div> <!-- Fin App Section -->
+
+    <!-- Modal para Agregar Cliente -->
+    <div id="addClientModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-button" id="closeAddClientModalButton" title="Cerrar esta ventana">&times;</span>
+            <h2><i class="fas fa-user-plus"></i> Agregar Nuevo Cliente</h2>
+            <form id="addClientForm">
+                <label for="nombreCliente" class="form-label">Nombre:</label>
+                <input type="text" id="nombreCliente" required class="form-input form-input-md">
+                <label for="apellidoCliente" class="form-label">Apellido:</label>
+                <input type="text" id="apellidoCliente" required class="form-input form-input-md">
+
+                <label for="tipoCedulaCliente" class="form-label">Tipo Cédula:</label>
+                <select id="tipoCedulaCliente" class="form-select form-input-md">
+                    <option value="V">V</option>
+                    <option value="E">E</option>
+                    <option value="P">P</option>
+                    <option value="J">J</option>
+                    <option value="G">G</option>
+                </select>
+
+                <label for="cedulaCliente" class="form-label">Número de Cédula/Identificación:</label>
+                <input type="text" id="cedulaCliente" pattern="\d*" title="Solo números" required class="form-input form-input-md">
+
+                <label for="telefonoCliente" class="form-label">Teléfono (Opcional):</label>
+                <input type="tel" id="telefonoCliente" class="form-input form-input-md">
+
+                <label for="barberoAsignado" class="form-label">Asignar a Barbero (Opcional):</label>
+                <select id="barberoAsignado" class="form-select form-input-md" title="Seleccione un barbero si el cliente tiene preferencia">
+                    <option value="">Cualquier barbero disponible</option>
+                    <!-- Opciones de barbero se llenarán aquí -->
+                </select>
+
+                <label for="tipoCorteCliente" class="form-label">Tipo de Corte:</label>
+                <select id="tipoCorteCliente" required class="form-select form-input-md" title="Seleccione el tipo de corte para el cliente">
+                    <option value="">Seleccione un tipo de corte...</option>
+                    <!-- Opciones de tipos de corte se llenarán aquí -->
+                </select>
+                <div id="precioCorteSeleccionadoInfo" style="margin-top: 5px; font-size: 0.9em; color: var(--text-muted);"></div>
+
+                <button type="submit" id="addClientButton" class="button button-primary button-lg button-block" style="margin-top:15px;" title="Guardar y agregar cliente a la cola">Agregar</button>
+            </form>
+            <div id="addClientMessageDiv" class="message"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación Genérico -->
+    <div id="confirmModal" class="modal hidden">
+        <div class="modal-content" style="max-width: 400px;">
+            <span class="close-button" id="closeConfirmModalButton" title="Cerrar esta ventana">&times;</span>
+            <h3 id="confirmModalTitle">Confirmar Acción</h3>
+            <p id="confirmModalMessage" style="margin-bottom: 20px;">¿Estás seguro?</p>
+            <div style="text-align: right;">
+                <button id="confirmModalNoButton" class="button button-secondary" title="Cancelar acción">No</button>
+                <button id="confirmModalYesButton" class="button button-danger" title="Confirmar acción">Sí</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Gestión de Tipos de Corte -->
+    <div id="gestionTiposCorteModal" class="modal hidden">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close-button" id="closeGestionTiposCorteModalButton" title="Cerrar esta ventana">&times;</span>
+            <h2><i class="fas fa-tags"></i> Gestión de Tipos de Corte</h2>
+            <form id="nuevoTipoCorteForm" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="nombreNuevoTipoCorte" placeholder="Nombre del tipo de corte" required class="form-input form-input-md" style="flex-grow: 1;" title="Nombre descriptivo del corte">
+                <input type="number" id="precioNuevoTipoCorte" placeholder="Precio USD" step="0.01" required class="form-input form-input-md" style="width: 120px;" title="Precio en dólares estadounidenses">
+                <button type="submit" class="button button-success" title="Añadir este tipo de corte"><i class="fas fa-plus"></i> Agregar</button>
+            </form>
+            <h3>Tipos de Corte Actuales:</h3>
+            <ul id="listaTiposCorteGestion" style="max-height: 300px; overflow-y: auto;">
+                <!-- Lista de tipos de corte para gestión se generará aquí por JS con sus 'title' -->
+            </ul>
+            <div style="text-align: right; margin-top: 20px;">
+                <button id="doneGestionTiposCorteButton" class="button button-primary" title="Guardar cambios y cerrar">Hecho</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- REFERENCIAS A ELEMENTOS DEL DOM ---
+        const loginSection = document.getElementById('login-section');
+        const appSection = document.getElementById('app-section');
+        const loginForm = document.getElementById('loginForm');
+        const abrirCajaButton = document.getElementById('abrirCajaButton');
+        const cerrarCajaButton = document.getElementById('cerrarCajaButton');
+        const bodyElement = document.body;
+
+        const loggedInUserSpan = document.getElementById('loggedInUser');
+        const loggedInUserRoleSpan = document.getElementById('loggedInUserRole');
+        const loginErrorMessage = document.getElementById('loginErrorMessage');
+
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const mainContent = document.getElementById('main-content');
+
+        const addClientModal = document.getElementById('addClientModal');
+        const openAddClientModalFromCaja = document.getElementById('openAddClientModalFromCaja');
+        const closeAddClientModalButton = document.getElementById('closeAddClientModalButton');
+        const addClientForm = document.getElementById('addClientForm');
+        const addClientMessageDiv = document.getElementById('addClientMessageDiv');
+
+        const confirmModal = document.getElementById('confirmModal');
+        const confirmModalTitle = document.getElementById('confirmModalTitle');
+        const confirmModalMessage = document.getElementById('confirmModalMessage');
+        const confirmModalYesButton = document.getElementById('confirmModalYesButton');
+        const confirmModalNoButton = document.getElementById('confirmModalNoButton');
+        const closeConfirmModalButton = document.getElementById('closeConfirmModalButton');
+        let confirmCallback = null;
+
+        // --- ESTADO DE LA APLICACIÓN ---
+        let usuarios = [];
+        let barberos = [];
+        let colaEspera = [];
+        let clientesAtendiendo = [];
+        let historialCortes = [];
+        let tiposDeCorte = [];
+        let metodosPagoCliente = {};
+        let cajaAbierta = false;
+        let fechaAperturaCaja = null;
+        let precioCorteGeneral = 10.00; // Precio por defecto
+
+        // --- INICIALIZACIÓN ---
+        function initApp() {
+            cargarUsuarios();
+            cargarBarberos();
+            cargarColasEHistorial();
+            cargarTiposDeCorte();
+            cargarPrecioCorteGeneral();
+            actualizarReloj();
+            setInterval(actualizarReloj, 1000); // Actualizar cada segundo
+            obtenerTasaBCV();
+            setInterval(obtenerTasaBCV, 3600000); // Actualizar tasa cada hora
+
+            // Cargar estado de la caja
+            cajaAbierta = JSON.parse(localStorage.getItem('cajaAbiertaBarberia')) || false;
+            fechaAperturaCaja = localStorage.getItem('fechaAperturaCajaBarberia') ? new Date(localStorage.getItem('fechaAperturaCajaBarberia')) : null;
+
+            const usuarioAutenticado = JSON.parse(localStorage.getItem('usuarioAutenticadoBarberia'));
+            if (usuarioAutenticado) {
+                mostrarApp(usuarioAutenticado);
+            } else {
+                mostrarLogin();
+            }
+        }
+
+        // --- LÓGICA DE AUTENTICACIÓN ---
+        function mostrarLogin() {
+            loginSection.classList.remove('hidden');
+            appSection.classList.add('hidden');
+            bodyElement.classList.add('login-active-background'); // Activa fondo de login
+            bodyElement.classList.remove('sidebar-expanded'); // Asegurar que no haya padding de sidebar
+        }
+
+        function mostrarApp(usuario) {
+            loginSection.classList.add('hidden');
+            appSection.classList.remove('hidden');
+            bodyElement.classList.remove('login-active-background'); // Desactiva fondo de login
+
+            loggedInUserSpan.textContent = usuario.username;
+            loggedInUserRoleSpan.textContent = usuario.rol;
+            configurarVisibilidadPorRol(usuario.rol);
+
+            // Iniciar con la barra lateral colapsada
+            sidebar.classList.add('collapsed');
+            bodyElement.classList.remove('sidebar-expanded');
+            sidebarToggle.setAttribute('aria-expanded', 'false');
+            actualizarEstadoSidebarEnLocalStorage(true);
+
+            renderizarBarberosEnLinea();
+            renderizarClientesAtendiendo();
+            renderizarCortesFinalizadosHoy();
+            actualizarContadoresColas();
+            cargarOpcionesBarberoEnSelects();
+            mostrarPanel('dashboardContent');
+        }
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = loginForm.username.value;
+            const password = loginForm.password.value;
+            const usuarioEncontrado = usuarios.find(u => u.username === username && u.password === password);
+
+            if (usuarioEncontrado) {
+                localStorage.setItem('usuarioAutenticadoBarberia', JSON.stringify(usuarioEncontrado));
+                mostrarApp(usuarioEncontrado);
+                loginErrorMessage.classList.add('hidden');
+                loginForm.reset();
+            } else {
+                loginErrorMessage.textContent = 'Usuario o contraseña incorrectos.';
+                loginErrorMessage.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('logoutButton').addEventListener('click', () => {
+            localStorage.removeItem('usuarioAutenticadoBarberia');
+            mostrarLogin();
+        });
+
+        function configurarVisibilidadPorRol(rol) {
+            const esAdmin = rol === 'admin';
+            const esCajero = rol === 'cajero';
+            const puedeGestionarBarberosYCortes = esAdmin || esCajero;
+
+            document.getElementById('showCajaButton').classList.toggle('hidden', !(esAdmin || esCajero));
+            document.getElementById('showGestionBarberos').classList.toggle('hidden', !puedeGestionarBarberosYCortes);
+            document.getElementById('showGestionUsuarios').classList.toggle('hidden', !esAdmin);
+            document.getElementById('showReportes').classList.toggle('hidden', !esAdmin);
+            document.getElementById('showConfiguracion').classList.toggle('hidden', !esAdmin);
+
+            const openAddClientModalFromCajaButton = document.getElementById('openAddClientModalFromCaja');
+            if (openAddClientModalFromCajaButton) {
+                openAddClientModalFromCajaButton.classList.toggle('hidden', !(esAdmin || esCajero));
+            }
+            const openGestionTiposCorteModalBtn = document.getElementById('openGestionTiposCorteModalButton');
+            if (openGestionTiposCorteModalBtn) {
+                openGestionTiposCorteModalBtn.classList.toggle('hidden', !puedeGestionarBarberosYCortes);
+            }
+            if(abrirCajaButton) abrirCajaButton.classList.toggle('hidden', !(esAdmin || esCajero));
+            if(cerrarCajaButton) cerrarCajaButton.classList.toggle('hidden', !(esAdmin || esCajero));
+        }
+
+        // --- LÓGICA DEL SIDEBAR Y NAVEGACIÓN ---
+        const navButtons = {
+            showCajaButton: 'dashboardContent',
+            showGestionBarberos: 'gestionBarberosPanel',
+            showGestionUsuarios: 'gestionUsuariosPanel',
+            showReportes: 'reportesPanel',
+            showConfiguracion: 'configuracionPanel'
+        };
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            actualizarEstadoSidebarEnLocalStorage(isCollapsed);
+            bodyElement.classList.toggle('sidebar-expanded', !isCollapsed);
+            sidebarToggle.setAttribute('aria-expanded', String(!isCollapsed));
+        });
+
+        function actualizarEstadoSidebarEnLocalStorage(isCollapsed) {
+            localStorage.setItem('sidebarCollapsedBarberia', isCollapsed);
+        }
+
+        Object.keys(navButtons).forEach(buttonId => {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                button.addEventListener('click', () => {
+                    mostrarPanel(navButtons[buttonId]);
+                });
+            }
+        });
+
+        function mostrarPanel(panelId) {
+            document.querySelectorAll('#main-content .panel').forEach(panel => {
+                panel.classList.add('hidden');
+            });
+            const panelActivo = document.getElementById(panelId);
+            if (panelActivo) {
+                panelActivo.classList.remove('hidden');
+            }
+        }
+
+        // --- LÓGICA DE BARBEROS ---
+        function cargarBarberos() {
+            barberos = JSON.parse(localStorage.getItem('barberosBarberia')) || [
+                { nombre: 'Barbero 1', estado: 'disponible', clienteActual: null },
+                { nombre: 'Barbero 2', estado: 'disponible', clienteActual: null }
+            ];
+            renderizarBarberosGestion();
+            renderizarBarberosEnLinea();
+            cargarOpcionesBarberoEnSelects();
+        }
+
+        function guardarBarberos() {
+            localStorage.setItem('barberosBarberia', JSON.stringify(barberos));
+            renderizarBarberosGestion();
+            renderizarBarberosEnLinea();
+            cargarOpcionesBarberoEnSelects();
+        }
+
+        function renderizarBarberosEnLinea() {
+            const contenedor = document.getElementById('barberos-linea');
+            contenedor.innerHTML = '';
+            barberos.forEach(barbero => {
+                const divBarbero = document.createElement('div');
+                divBarbero.className = `barbero-estacion-visual ${barbero.estado}`;
+                divBarbero.innerHTML = `
+                    <div class="barbero-nombre">${barbero.nombre}</div>
+                    <div class="barbero-estado">Estado: <span>${barbero.estado.charAt(0).toUpperCase() + barbero.estado.slice(1)}</span></div>
+                    ${barbero.clienteActual ? `<div class="cliente-actual">Atendiendo a: ${barbero.clienteActual}</div>` : ''}
+                `;
+                contenedor.appendChild(divBarbero);
+            });
+        }
+        const nuevoBarberoForm = document.getElementById('nuevoBarberoForm');
+        if (nuevoBarberoForm) {
+            nuevoBarberoForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const nombreNuevoBarberoInput = document.getElementById('nombreNuevoBarbero');
+                const nombre = nombreNuevoBarberoInput.value.trim();
+                if (nombre && !barberos.find(b => b.nombre.toLowerCase() === nombre.toLowerCase())) {
+                    barberos.push({ nombre: nombre, estado: 'disponible', clienteActual: null });
+                    guardarBarberos();
+                    nombreNuevoBarberoInput.value = '';
+                } else if (barberos.find(b => b.nombre.toLowerCase() === nombre.toLowerCase())) {
+                    alert('El nombre del barbero ya existe.');
+                } else {
+                    alert('Por favor, ingrese un nombre válido para el barbero.');
+                }
+            });
+        }
+
+        function renderizarBarberosGestion() {
+            const listaBarberosGestion = document.getElementById('listaBarberosGestion');
+            if (!listaBarberosGestion) return;
+            listaBarberosGestion.innerHTML = '';
+            barberos.forEach(barbero => {
+                const li = document.createElement('li');
+                li.classList.add('gestion-item');
+                li.innerHTML = `
+                    <span class="item-name">${barbero.nombre}</span>
+                    <div class="item-actions">
+                        <button class="button button-danger button-sm eliminar-barbero" data-nombre="${barbero.nombre}" title="Eliminar este barbero"><i class="fas fa-trash"></i></button>
+                    </div>`;
+                listaBarberosGestion.appendChild(li);
+            });
+
+            document.querySelectorAll('.eliminar-barbero').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const nombreBarbero = e.currentTarget.dataset.nombre;
+                    abrirConfirmModal('Eliminar Barbero', `¿Estás seguro de que quieres eliminar a ${nombreBarbero}?`, () => {
+                        barberos = barberos.filter(b => b.nombre !== nombreBarbero);
+                        guardarBarberos();
+                    });
+                });
+            });
+        }
+
+
+        // --- LÓGICA DE CLIENTES Y COLAS ---
+        function cargarColasEHistorial() {
+            colaEspera = JSON.parse(localStorage.getItem('colaEsperaBarberia')) || [];
+            clientesAtendiendo = JSON.parse(localStorage.getItem('clientesAtendiendoBarberia')) || [];
+            historialCortes = JSON.parse(localStorage.getItem('historialCortesBarberia')) || [];
+
+            colaEspera.forEach(c => c.horaLlegada = new Date(c.horaLlegada));
+            clientesAtendiendo.forEach(c => {
+                c.horaLlegada = new Date(c.horaLlegada);
+                c.horaInicioAtencion = new Date(c.horaInicioAtencion);
+            });
+            historialCortes.forEach(c => {
+                c.horaLlegada = new Date(c.horaLlegada);
+                c.horaInicioAtencion = new Date(c.horaInicioAtencion);
+                c.horaFinalizacion = new Date(c.horaFinalizacion);
+            });
+            renderizarClientesAtendiendo();
+            renderizarCortesFinalizadosHoy();
+            actualizarContadoresColas();
+        }
+
+        function guardarColasEHistorial() {
+            localStorage.setItem('colaEsperaBarberia', JSON.stringify(colaEspera));
+            localStorage.setItem('clientesAtendiendoBarberia', JSON.stringify(clientesAtendiendo));
+            localStorage.setItem('historialCortesBarberia', JSON.stringify(historialCortes));
+            renderizarClientesAtendiendo();
+            renderizarCortesFinalizadosHoy();
+            actualizarContadoresColas();
+        }
+
+        if (openAddClientModalFromCaja) {
+            openAddClientModalFromCaja.addEventListener('click', openAddClientModal);
+        }
+        if (closeAddClientModalButton) {
+            closeAddClientModalButton.onclick = () => addClientModal.classList.add('hidden');
+        }
+
+        function openAddClientModal() {
+            addClientForm.reset();
+            document.getElementById('precioCorteSeleccionadoInfo').textContent = '';
+            addClientMessageDiv.textContent = '';
+            addClientMessageDiv.className = 'message';
+            cargarOpcionesTiposDeCorteEnSelects(document.getElementById('tipoCorteCliente'));
+            cargarOpcionesBarberoEnSelects();
+            addClientModal.classList.remove('hidden');
+        }
+
+        addClientForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById('nombreCliente').value.trim();
+            const apellido = document.getElementById('apellidoCliente').value.trim();
+            const tipoCedula = document.getElementById('tipoCedulaCliente').value;
+            const numeroCedula = document.getElementById('cedulaCliente').value.trim();
+            const telefono = document.getElementById('telefonoCliente').value.trim() || null;
+            const barberoAsignado = document.getElementById('barberoAsignado').value || null;
+            const tipoCorteSeleccionadoId = document.getElementById('tipoCorteCliente').value;
+
+            if (!nombre || !apellido || !numeroCedula || !tipoCorteSeleccionadoId) {
+                mostrarMensajeModalCliente("Por favor, complete todos los campos obligatorios y seleccione un tipo de corte.", "error");
+                return;
+            }
+            const tipoCorteObj = tiposDeCorte.find(tc => tc.id === tipoCorteSeleccionadoId);
+            if (!tipoCorteObj) {
+                mostrarMensajeModalCliente("Tipo de corte seleccionado no es válido.", "error");
+                return;
+            }
+            const precioCorte = tipoCorteObj.precioUSD;
+
+            const nuevoCliente = {
+                nombreCompleto: `${nombre} ${apellido}`,
+                cedula: `${tipoCedula}-${numeroCedula}`,
+                telefono: telefono,
+                tipoCorte: tipoCorteObj.nombre,
+                barberoAsignado: barberoAsignado,
+                precioCorte: precioCorte,
+                horaLlegada: new Date()
+            };
+
+            colaEspera.push(nuevoCliente);
+            guardarColasEHistorial();
+            mostrarMensajeModalCliente(`Cliente ${nuevoCliente.nombreCompleto} agregado.`, "success");
+            addClientForm.reset();
+            document.getElementById('precioCorteSeleccionadoInfo').textContent = '';
+            setTimeout(() => {
+                addClientModal.classList.add('hidden');
+                addClientMessageDiv.textContent = '';
+                addClientMessageDiv.className = 'message';
+                intentarAsignarClienteDeCola();
+            }, 1500);
+        });
+
+        function mostrarMensajeModalCliente(mensaje, tipo) {
+            addClientMessageDiv.textContent = mensaje;
+            addClientMessageDiv.className = `message ${tipo}`;
+        }
+
+        function renderizarClientesAtendiendo() {
+            const lista = document.getElementById('listaClientesAtendiendo');
+            if(!lista) return;
+            lista.innerHTML = '';
+            clientesAtendiendo.forEach((cliente, index) => {
+                const li = document.createElement('li');
+                const tasaActual = parseFloat(document.getElementById('tasaUSDBcv').textContent) || 0;
+                const precioEnBs = (cliente.precioCorte * tasaActual).toFixed(2);
+                li.innerHTML = `
+                    <strong>${cliente.nombreCompleto}</strong> (CI: ${cliente.cedula})
+                    <br>Atendido por: ${cliente.barberoAtendiendo}
+                    <br>Inició: ${new Date(cliente.horaInicioAtencion).toLocaleTimeString()}
+                    <br>Precio: $${cliente.precioCorte.toFixed(2)} (Bs. ${precioEnBs})
+                    <div class="metodo-pago-seleccion" style="margin-top: 10px;">
+                        <label for="metodoPago-${index}" class="form-label-sm">Método de Pago:</label>
+                        <select id="metodoPago-${index}" class="form-select form-input-sm" data-cliente-cedula="${cliente.cedula}" title="Seleccione el método de pago del cliente">
+                            <option value="">Seleccione...</option>
+                            <option value="efectivo_usd">Efectivo USD</option>
+                            <option value="efectivo_bs">Efectivo BS</option>
+                            <option value="pago_movil">Pago Móvil</option>
+                            <option value="transferencia">Transferencia</option>
+                            <option value="tarjeta">Tarjeta</option>
+                        </select>
+                        <div id="detallesPago-${index}" class="detalles-pago-adicional hidden" style="margin-top: 5px;">
+                            <input type="text" id="referenciaPago-${index}" class="form-input form-input-sm" placeholder="Referencia (min. 6 digitos)" style="margin-bottom:3px;" title="Número de referencia del pago">
+                            <input type="number" id="montoPagado-${index}" class="form-input form-input-sm" placeholder="Monto Pagado" step="0.01" title="Monto exacto pagado por el cliente">
+                            <div id="cambioEfectivo-${index}" style="margin-top:5px; font-size:1.1em; font-weight:bold; color:var(--accent-color);"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="button button-success button-sm finalizar-corte-lista" data-barbero="${cliente.barberoAtendiendo}" title="Marcar este corte como finalizado"><i class="fas fa-check"></i> Finalizar Corte</button>
+                    </div>
+                `;
+                lista.appendChild(li);
+
+                const metodoGuardado = metodosPagoCliente[cliente.cedula];
+                if (metodoGuardado) {
+                    const selectMetodo = document.getElementById(`metodoPago-${index}`);
+                    selectMetodo.value = metodoGuardado.metodo || "";
+                    selectMetodo.dispatchEvent(new Event('change'));
+                    if(document.getElementById(`referenciaPago-${index}`)) document.getElementById(`referenciaPago-${index}`).value = metodoGuardado.referencia || "";
+                    if(document.getElementById(`montoPagado-${index}`)) document.getElementById(`montoPagado-${index}`).value = metodoGuardado.montoPagado || "";
+                }
+            });
+            document.querySelectorAll('.finalizar-corte-lista').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const nombreBarbero = e.currentTarget.dataset.barbero;
+                    finalizarCorte(nombreBarbero);
+                });
+            });
+            document.querySelectorAll('select[id^="metodoPago-"]').forEach(select => {
+                select.addEventListener('change', (e) => {
+                    const clienteCedula = e.target.dataset.clienteCedula;
+                    const metodo = e.target.value;
+                    const index = e.target.id.split('-')[1];
+                    const detallesDiv = document.getElementById(`detallesPago-${index}`);
+                    const refInput = document.getElementById(`referenciaPago-${index}`);
+                    const montoPagadoInput = document.getElementById(`montoPagado-${index}`);
+                    const cambioDiv = document.getElementById(`cambioEfectivo-${index}`);
+
+                    metodosPagoCliente[clienteCedula] = metodosPagoCliente[clienteCedula] || {};
+                    metodosPagoCliente[clienteCedula].metodo = metodo;
+
+                    if (metodo === 'pago_movil' || metodo === 'transferencia') {
+                        detallesDiv.classList.remove('hidden');
+                        refInput.classList.remove('hidden');
+                        montoPagadoInput.classList.remove('hidden');
+                        montoPagadoInput.placeholder = "Monto Pagado (Bs.)";
+                        cambioDiv.classList.add('hidden');
+                        cambioDiv.textContent = '';
+                    } else if (metodo === 'efectivo_usd' || metodo === 'efectivo_bs') {
+                        detallesDiv.classList.remove('hidden');
+                        refInput.classList.add('hidden');
+                        montoPagadoInput.classList.remove('hidden');
+                        montoPagadoInput.placeholder = metodo === 'efectivo_usd' ? "Monto Pagado (USD)" : "Monto Pagado (Bs.)";
+                        cambioDiv.classList.remove('hidden');
+                    } else {
+                        detallesDiv.classList.add('hidden');
+                    }
+                });
+                const montoPagadoInput = document.getElementById(`montoPagado-${select.id.split('-')[1]}`);
+                if (montoPagadoInput) {
+                    montoPagadoInput.addEventListener('input', (e) => {
+                        const clienteCedula = select.dataset.clienteCedula;
+                        const metodo = select.value;
+                        const cliente = clientesAtendiendo.find(c => c.cedula === clienteCedula);
+                        if (!cliente) return;
+
+                        metodosPagoCliente[clienteCedula].montoPagado = e.target.value;
+                        const cambioDiv = document.getElementById(`cambioEfectivo-${select.id.split('-')[1]}`);
+                        if (metodo === 'efectivo_usd' || metodo === 'efectivo_bs') {
+                            const montoPagado = parseFloat(e.target.value);
+                            if (isNaN(montoPagado)) {
+                                cambioDiv.textContent = '';
+                                return;
+                            }
+                            const precioCorte = cliente.precioCorte;
+                            let cambio = 0;
+                            const tasa = parseFloat(document.getElementById('tasaUSDBcv').textContent) || 1;
+                            if (metodo === 'efectivo_usd') {
+                                cambio = montoPagado - precioCorte;
+                            } else {
+                                cambio = montoPagado - (precioCorte * tasa);
+                            }
+                            if (cambio >= 0) {
+                                let cambioTexto = `Cambio: `;
+                                if (metodo === 'efectivo_usd') {
+                                    cambioTexto += `$${cambio.toFixed(2)} (Bs. ${(cambio * tasa).toFixed(2)})`;
+                                } else {
+                                    cambioTexto += `Bs. ${cambio.toFixed(2)} ($${(cambio / tasa).toFixed(2)})`;
+                                }
+                                cambioDiv.innerHTML = cambioTexto;
+                            } else {
+                                cambioDiv.innerHTML = `Faltan: ${metodo === 'efectivo_usd' ? '$' : 'Bs.'}${Math.abs(cambio).toFixed(2)}`;
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        function actualizarContadoresColas() {
+            const contadorAtendiendo = document.getElementById('contadorClientesAtendiendo');
+            if(contadorAtendiendo) contadorAtendiendo.textContent = clientesAtendiendo.length;
+        }
+
+        function intentarAsignarClienteDeCola() {
+            if (colaEspera.length > 0) {
+                const clienteParaAsignar = colaEspera[0];
+                let barberoDestino = null;
+
+                if (clienteParaAsignar.barberoAsignado) {
+                    barberoDestino = barberos.find(b => b.nombre === clienteParaAsignar.barberoAsignado && b.estado === 'disponible');
+                } else {
+                    barberoDestino = barberos.find(b => b.estado === 'disponible');
+                }
+
+                if (barberoDestino) {
+                    colaEspera.shift();
+                    asignarClienteABarbero(clienteParaAsignar, barberoDestino.nombre);
+                }
+            }
+        }
+
+        function asignarClienteABarbero(cliente, nombreBarbero) {
+            const barbero = barberos.find(b => b.nombre === nombreBarbero);
+            if (barbero && barbero.estado === 'disponible') {
+                barbero.estado = 'ocupado';
+                barbero.clienteActual = cliente.nombreCompleto;
+                const clienteAtendiendo = {
+                    ...cliente,
+                    barberoAtendiendo: nombreBarbero,
+                    horaInicioAtencion: new Date()
+                };
+                clientesAtendiendo.push(clienteAtendiendo);
+                guardarBarberos();
+                guardarColasEHistorial();
+            }
+        }
+
+        function finalizarCorte(nombreBarbero) {
+            const barbero = barberos.find(b => b.nombre === nombreBarbero);
+            const clienteIndex = clientesAtendiendo.findIndex(c => c.barberoAtendiendo === nombreBarbero);
+
+            if (barbero && barbero.estado === 'ocupado' && clienteIndex !== -1) {
+                const clienteFinalizado = clientesAtendiendo[clienteIndex];
+                const metodoPagoInfo = metodosPagoCliente[clienteFinalizado.cedula] || {};
+
+                if (!metodoPagoInfo.metodo) {
+                    alert("Por favor, seleccione un método de pago antes de finalizar el corte.");
+                    return;
+                }
+                if ((metodoPagoInfo.metodo === 'pago_movil' || metodoPagoInfo.metodo === 'transferencia')) {
+                    const refInput = document.getElementById(`referenciaPago-${clienteIndex}`);
+                    const montoPagadoInput = document.getElementById(`montoPagado-${clienteIndex}`);
+                    const referencia = refInput ? refInput.value : (metodoPagoInfo.referencia || "");
+                    const montoPagado = montoPagadoInput ? montoPagadoInput.value : (metodoPagoInfo.montoPagado || "");
+
+                    if (referencia.length < 6) {
+                        alert("La referencia debe tener al menos 6 dígitos.");
+                        return;
+                    }
+                    metodoPagoInfo.referencia = referencia;
+                    metodoPagoInfo.montoPagado = montoPagado;
+                }
+                
+                const clienteProcesado = clientesAtendiendo.splice(clienteIndex, 1)[0];
+
+                barbero.estado = 'disponible';
+                barbero.clienteActual = null;
+
+                const tasaActual = parseFloat(document.getElementById('tasaUSDBcv').textContent) || 1;
+                const corteHistorial = {
+                    ...clienteProcesado,
+                    metodoPago: metodoPagoInfo.metodo,
+                    referenciaPago: metodoPagoInfo.referencia,
+                    montoPagado: metodoPagoInfo.montoPagado,
+                    precioBs: (clienteProcesado.precioCorte * tasaActual).toFixed(2),
+                    horaFinalizacion: new Date(),
+                    duracionMinutos: Math.round((new Date() - new Date(clienteProcesado.horaInicioAtencion)) / 60000)
+                };
+                historialCortes.push(corteHistorial);
+
+                delete metodosPagoCliente[clienteProcesado.cedula];
+                guardarBarberos();
+                guardarColasEHistorial();
+                intentarAsignarClienteDeCola();
+            }
+        }
+        setInterval(intentarAsignarClienteDeCola, 10000);
+
+        // --- LÓGICA DE APERTURA Y CIERRE DE CAJA ---
+        if (abrirCajaButton) {
+            abrirCajaButton.addEventListener('click', () => {
+                if (cajaAbierta) {
+                    alert("La caja ya está abierta desde " + fechaAperturaCaja.toLocaleString());
+                    return;
+                }
+                abrirConfirmModal("Abrir Caja", "¿Estás seguro de que deseas abrir la caja?", () => {
+                    cajaAbierta = true;
+                    fechaAperturaCaja = new Date();
+                    localStorage.setItem('cajaAbiertaBarberia', JSON.stringify(true));
+                    localStorage.setItem('fechaAperturaCajaBarberia', fechaAperturaCaja.toISOString());
+                    renderizarCortesFinalizadosHoy();
+                    alert("Caja abierta exitosamente a las " + fechaAperturaCaja.toLocaleTimeString());
+                });
+            });
+        }
+
+        if (cerrarCajaButton) {
+            cerrarCajaButton.addEventListener('click', () => {
+                if (!cajaAbierta) {
+                    alert("La caja no está abierta. Ábrela primero.");
+                    return;
+                }
+                abrirConfirmModal("Cerrar Caja", "¿Estás seguro de que deseas cerrar la caja? Esto generará el reporte final y limpiará los cortes del día.", () => {
+                    generarReporteCierreCaja();
+                    cajaAbierta = false;
+                    localStorage.setItem('cajaAbiertaBarberia', JSON.stringify(false));
+                    
+                    const idCierre = `cierre-${new Date().toISOString()}`;
+                    historialCortes.forEach(corte => {
+                        if (fechaAperturaCaja && new Date(corte.horaFinalizacion) >= fechaAperturaCaja && !corte.idCierre) {
+                            corte.idCierre = idCierre;
+                        }
+                    });
+                                        
+                    guardarColasEHistorial();
+                    renderizarCortesFinalizadosHoy();
+
+                    alert("Caja cerrada y reporte generado. Los cortes del período han sido procesados.");
+                    mostrarPanel('reportesPanel');
+                    fechaAperturaCaja = null;
+                    localStorage.removeItem('fechaAperturaCajaBarberia');
+                });
+            });
+        }
+
+        function generarReporteCierreCaja() {
+            const reporteCierreDiv = document.getElementById('reporteCierreCajaResultados');
+            if (!reporteCierreDiv) return;
+
+            const cortesDelCierre = historialCortes.filter(corte =>
+                fechaAperturaCaja && new Date(corte.horaFinalizacion) >= fechaAperturaCaja && !corte.idCierreAnterior
+            );
+            const idCierreActual = `cierre-${new Date().toISOString()}`;
+            cortesDelCierre.forEach(c => c.idCierreAnterior = idCierreActual);
+
+
+            if (cortesDelCierre.length === 0) {
+                reporteCierreDiv.innerHTML = "<p>No hay cortes para generar el reporte de cierre desde la última apertura.</p>";
+                return;
+            }
+
+            let htmlReporte = `<h4>Reporte de Cierre - ${new Date().toLocaleString()}</h4>`;
+            htmlReporte += `<p>Caja abierta desde: ${fechaAperturaCaja ? fechaAperturaCaja.toLocaleString() : 'N/A'}</p>`;
+
+            const resumenBarberos = {};
+            let totalGeneralUSD = 0;
+            let totalGeneralBs = 0;
+
+            cortesDelCierre.forEach(corte => {
+                if (!resumenBarberos[corte.barberoAtendiendo]) {
+                    resumenBarberos[corte.barberoAtendiendo] = { cortes: 0, totalUSD: 0, totalBs: 0, tiposCorte: {} };
+                }
+                resumenBarberos[corte.barberoAtendiendo].cortes++;
+                resumenBarberos[corte.barberoAtendiendo].totalUSD += parseFloat(corte.precioCorte);
+                resumenBarberos[corte.barberoAtendiendo].totalBs += parseFloat(corte.precioBs || 0);
+                totalGeneralUSD += parseFloat(corte.precioCorte);
+                totalGeneralBs += parseFloat(corte.precioBs || 0);
+
+                const tipoCorte = corte.tipoCorte || 'General';
+                if (!resumenBarberos[corte.barberoAtendiendo].tiposCorte[tipoCorte]) {
+                    resumenBarberos[corte.barberoAtendiendo].tiposCorte[tipoCorte] = 0;
+                }
+                resumenBarberos[corte.barberoAtendiendo].tiposCorte[tipoCorte]++;
+            });
+
+            htmlReporte += `<h5>Resumen por Barbero:</h5><div class="table-responsive-container"><table class="report-table" id="tablaResumenBarberosCierre">
+                            <thead><tr><th>Barbero</th><th>N° Cortes</th><th>Total USD</th><th>Total Bs.</th><th>Detalle Tipos Corte</th></tr></thead><tbody>`;
+            for (const barbero in resumenBarberos) {
+                let detalleTipos = '';
+                for(const tipo in resumenBarberos[barbero].tiposCorte) {
+                    detalleTipos += `${tipo}: ${resumenBarberos[barbero].tiposCorte[tipo]}<br>`;
+                }
+                htmlReporte += `<tr><td>${barbero}</td><td>${resumenBarberos[barbero].cortes}</td><td>$${resumenBarberos[barbero].totalUSD.toFixed(2)}</td><td>Bs. ${resumenBarberos[barbero].totalBs.toFixed(2)}</td><td>${detalleTipos}</td></tr>`;
+            }
+            htmlReporte += `</tbody><tfoot><tr><td colspan="2"><strong>TOTAL GENERAL</strong></td><td><strong>$${totalGeneralUSD.toFixed(2)}</strong></td><td><strong>Bs. ${totalGeneralBs.toFixed(2)}</strong></td><td></td></tr></tfoot></table></div>`;
+
+            htmlReporte += `<h5 style="margin-top:15px;">Detalle de Cortes del Cierre:</h5><div class="table-responsive-container"><table class="report-table" id="tablaDetalleCortesCierre">
+                            <thead><tr><th>Cliente</th><th>Barbero</th><th>Tipo</th><th>Precio USD</th><th>Precio Bs.</th><th>Método Pago</th><th>Ref.</th><th>Hora Fin</th></tr></thead><tbody>`;
+            cortesDelCierre.forEach(corte => {
+                htmlReporte += `<tr><td>${corte.nombreCompleto}</td><td>${corte.barberoAtendiendo}</td><td>${corte.tipoCorte || 'General'}</td><td>$${corte.precioCorte.toFixed(2)}</td><td>Bs. ${corte.precioBs || 'N/A'}</td><td>${corte.metodoPago || ''}</td><td>${corte.referenciaPago || ''}</td><td>${new Date(corte.horaFinalizacion).toLocaleTimeString()}</td></tr>`;
+            });
+            htmlReporte += `</tbody></table></div>`;
+            reporteCierreDiv.innerHTML = htmlReporte;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(16);
+            doc.text("Reporte de Cierre de Caja - Barbería Barba'ros", 10, 15);
+            doc.setFontSize(10);
+            doc.text(`Fecha Cierre: ${new Date().toLocaleString()}`, 10, 22);
+            doc.text(`Caja abierta desde: ${fechaAperturaCaja ? fechaAperturaCaja.toLocaleString() : 'N/A'}`, 10, 28);
+            
+            doc.autoTable({ html: '#tablaResumenBarberosCierre', startY: 35 });
+            let finalYResumen = doc.lastAutoTable.finalY || 35;
+            doc.autoTable({ html: '#tablaDetalleCortesCierre', startY: finalYResumen + 10 });
+            
+            doc.save(`reporte_cierre_caja_${new Date().toISOString().slice(0,10)}.pdf`);
+        }
+
+
+        function renderizarCortesFinalizadosHoy() {
+            const lista = document.getElementById('listaCortesFinalizadosHoy');
+            const totalBsDiv = document.getElementById('totalAtendiendoBs');
+            if (!lista || !totalBsDiv) return;
+
+            lista.innerHTML = '';
+            let totalIngresosUsdHoy = 0;
+            let totalIngresosBsHoy = 0;
+
+            const cortesDeHoy = historialCortes.filter(corte =>
+                cajaAbierta && fechaAperturaCaja && new Date(corte.horaFinalizacion) >= fechaAperturaCaja && !corte.idCierreAnterior && !corte.idCierre
+            );
+
+            cortesDeHoy.forEach(corte => {
+                const li = document.createElement('li');
+                li.classList.add('corte-finalizado-item');
+                li.innerHTML = `
+                    <strong>${corte.nombreCompleto}</strong> (CI: ${corte.cedula})
+                    <br>Barbero: ${corte.barberoAtendiendo} | Tipo: ${corte.tipoCorte || 'General'}
+                    <br>Precio: $${corte.precioCorte.toFixed(2)} (Bs. ${corte.precioBs || 'N/A'})
+                    <br>Duración: ${corte.duracionMinutos} min.
+                    <br>Método Pago: ${corte.metodoPago || 'No especificado'} ${corte.referenciaPago ? `(Ref: ${corte.referenciaPago})` : ''}
+                    <br>Finalizado: ${new Date(corte.horaFinalizacion).toLocaleTimeString()}
+                    <button class="button button-secondary button-sm generar-factura-btn" data-corte-cedula="${corte.cedula}" data-corte-fecha="${corte.horaFinalizacion}" title="Generar factura para este corte (PDF)"><i class="fas fa-receipt"></i> Factura</button>
+                `;
+                lista.appendChild(li);
+                totalIngresosUsdHoy += parseFloat(corte.precioCorte);
+                totalIngresosBsHoy += parseFloat(corte.precioBs || 0);
+            });
+
+            totalBsDiv.textContent = `Total Atendido (Periodo Actual): $${totalIngresosUsdHoy.toFixed(2)} / Bs. ${totalIngresosBsHoy.toFixed(2)}`;
+
+            document.querySelectorAll('.generar-factura-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    alert("Funcionalidad de generar factura PDF aún no implementada con detalle fiscal.");
+                });
+            });
+        }
+
+        // --- LÓGICA DE GESTIÓN DE USUARIOS ---
+        function cargarUsuarios() {
+            usuarios = JSON.parse(localStorage.getItem('usuariosBarberia')) || [
+                { username: 'admin', password: 'adminpassword', rol: 'admin' },
+                { username: 'cajero1', password: 'cajeropassword', rol: 'cajero' }
+            ];
+            renderizarUsuariosGestion();
+        }
+        function guardarUsuarios() {
+            localStorage.setItem('usuariosBarberia', JSON.stringify(usuarios));
+            renderizarUsuariosGestion();
+        }
+        const nuevoUsuarioForm = document.getElementById('nuevoUsuarioForm');
+        if (nuevoUsuarioForm) {
+            nuevoUsuarioForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const usernameInput = document.getElementById('usernameNuevoUsuario');
+                const passwordInput = document.getElementById('passwordNuevoUsuario');
+                const rolSelect = document.getElementById('rolNuevoUsuario');
+                const username = usernameInput.value.trim();
+                const password = passwordInput.value.trim();
+                const rol = rolSelect.value;
+
+                if (username && password && !usuarios.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+                    usuarios.push({ username, password, rol });
+                    guardarUsuarios();
+                    usernameInput.value = '';
+                    passwordInput.value = '';
+                    rolSelect.value = 'cajero';
+                    alert('Usuario agregado exitosamente.');
+                } else if (usuarios.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+                    alert('El nombre de usuario ya existe.');
+                } else {
+                    alert('Por favor, complete todos los campos.');
+                }
+            });
+        }
+
+        function renderizarUsuariosGestion() {
+            const listaUsuariosGestion = document.getElementById('listaUsuariosGestion');
+            if (!listaUsuariosGestion) return;
+            listaUsuariosGestion.innerHTML = '';
+            usuarios.forEach(usuario => {
+                if (usuario.username === 'admin' && usuarios.filter(u => u.rol === 'admin').length === 1 && usuario.rol === 'admin') {
+                    const li = document.createElement('li');
+                    li.classList.add('gestion-item');
+                    li.innerHTML = `<span class="item-name">${usuario.username} (${usuario.rol}) - (Admin principal, no se puede eliminar)</span>`;
+                    listaUsuariosGestion.appendChild(li);
+                } else {
+                    const li = document.createElement('li');
+                    li.classList.add('gestion-item');
+                    li.innerHTML = `
+                        <span class="item-name">${usuario.username} (${usuario.rol})</span>
+                        <div class="item-actions">
+                            <button class="button button-danger button-sm eliminar-usuario" data-username="${usuario.username}" title="Eliminar este usuario"><i class="fas fa-trash"></i></button>
+                        </div>`;
+                    listaUsuariosGestion.appendChild(li);
+                }
+            });
+
+            document.querySelectorAll('.eliminar-usuario').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const username = e.currentTarget.dataset.username;
+                    const usuarioAEliminar = usuarios.find(u => u.username === username);
+                    if (usuarioAEliminar.rol === 'admin' && usuarios.filter(u => u.rol === 'admin').length <= 1) {
+                        alert('No se puede eliminar el único administrador.');
+                        return;
+                    }
+                    abrirConfirmModal('Eliminar Usuario', `¿Estás seguro de que quieres eliminar al usuario "${username}"?`, () => {
+                        usuarios = usuarios.filter(u => u.username !== username);
+                        guardarUsuarios();
+                    });
+                });
+            });
+        }
+
+
+        // --- LÓGICA MODAL DE CONFIRMACIÓN ---
+        if (closeConfirmModalButton) {
+            closeConfirmModalButton.onclick = () => confirmModal.classList.add('hidden');
+        }
+        if (confirmModalNoButton) {
+            confirmModalNoButton.onclick = () => confirmModal.classList.add('hidden');
+        }
+        if (confirmModalYesButton) {
+            confirmModalYesButton.onclick = () => {
+                if (confirmCallback) confirmCallback();
+                confirmModal.classList.add('hidden');
+            };
+        }
+        window.addEventListener('click', (event) => {
+            if (event.target == confirmModal) confirmModal.classList.add('hidden');
+            if (event.target == addClientModal) addClientModal.classList.add('hidden');
+            if (event.target == gestionTiposCorteModal) gestionTiposCorteModal.classList.add('hidden');
+        });
+
+        function abrirConfirmModal(titulo, mensaje, callback) {
+            confirmModalTitle.textContent = titulo;
+            confirmModalMessage.textContent = mensaje;
+            confirmCallback = callback;
+            confirmModal.classList.remove('hidden');
+        }
+
+        // --- LÓGICA DE GESTIÓN DE TIPOS DE CORTE ---
+        const gestionTiposCorteModal = document.getElementById('gestionTiposCorteModal');
+        const openGestionTiposCorteModalButton = document.getElementById('openGestionTiposCorteModalButton');
+        const closeGestionTiposCorteModalButton = document.getElementById('closeGestionTiposCorteModalButton');
+        const doneGestionTiposCorteButton = document.getElementById('doneGestionTiposCorteButton');
+        const formNuevoTipoCorte = gestionTiposCorteModal ? gestionTiposCorteModal.querySelector('#nuevoTipoCorteForm') : null;
+        const listaTiposCorteGestion = gestionTiposCorteModal ? gestionTiposCorteModal.querySelector('#listaTiposCorteGestion') : null;
+
+        if (openGestionTiposCorteModalButton) {
+            openGestionTiposCorteModalButton.addEventListener('click', () => {
+                if(gestionTiposCorteModal) gestionTiposCorteModal.classList.remove('hidden');
+                renderizarTiposDeCorteGestion();
+            });
+        }
+        if (closeGestionTiposCorteModalButton) {
+            closeGestionTiposCorteModalButton.onclick = () => gestionTiposCorteModal.classList.add('hidden');
+        }
+        if (doneGestionTiposCorteButton) {
+            doneGestionTiposCorteButton.onclick = () => gestionTiposCorteModal.classList.add('hidden');
+        }
+
+        function generarIdUnico() {
+            return Date.now().toString(36) + Math.random().toString(36).substring(2);
+        }
+
+        function cargarTiposDeCorte() {
+            tiposDeCorte = JSON.parse(localStorage.getItem('tiposDeCorteBarberia')) || [
+                { id: generarIdUnico(), nombre: 'Corte Clásico', precioUSD: 7.00 },
+                { id: generarIdUnico(), nombre: 'Corte Degradado', precioUSD: 10.00 },
+                { id: generarIdUnico(), nombre: 'Barba', precioUSD: 5.00 }
+            ];
+            renderizarTiposDeCorteGestion();
+            cargarOpcionesTiposDeCorteEnSelects(document.getElementById('tipoCorteCliente'));
+        }
+
+        function guardarTiposDeCorte() {
+            localStorage.setItem('tiposDeCorteBarberia', JSON.stringify(tiposDeCorte));
+            renderizarTiposDeCorteGestion();
+            cargarOpcionesTiposDeCorteEnSelects(document.getElementById('tipoCorteCliente'));
+        }
+
+        if (formNuevoTipoCorte) {
+            formNuevoTipoCorte.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const nombreInput = formNuevoTipoCorte.querySelector('#nombreNuevoTipoCorte');
+                const precioInput = formNuevoTipoCorte.querySelector('#precioNuevoTipoCorte');
+                const nombre = nombreInput.value.trim();
+                const precioUSD = parseFloat(precioInput.value);
+
+                if (nombre && !isNaN(precioUSD) && precioUSD > 0 && !tiposDeCorte.find(tc => tc.nombre.toLowerCase() === nombre.toLowerCase())) {
+                    tiposDeCorte.push({ id: generarIdUnico(), nombre, precioUSD });
+                    guardarTiposDeCorte();
+                    nombreInput.value = '';
+                    precioInput.value = '';
+                } else if (nombre && tiposDeCorte.find(tc => tc.nombre.toLowerCase() === nombre.toLowerCase())) {
+                    alert('El nombre del tipo de corte ya existe.');
+                } else {
+                    alert('Por favor, ingrese un nombre y un precio USD válido.');
+                }
+            });
+        }
+
+        function renderizarTiposDeCorteGestion() {
+            if (!listaTiposCorteGestion) return;
+            listaTiposCorteGestion.innerHTML = '';
+            tiposDeCorte.forEach(tipo => {
+                const li = document.createElement('li');
+                li.classList.add('gestion-item');
+                li.innerHTML = `
+                    <div class="editar-tipo-corte-form" style="flex-grow:1; display:flex; align-items:center; gap:10px;">
+                        <input type="text" value="${tipo.nombre}" class="form-input form-input-sm nombre-tipo-corte-edit" data-id="${tipo.id}" style="flex-grow:1;" readonly title="Nombre del tipo de corte (no editable aquí)">
+                        <span>Precio USD:</span>
+                        <input type="number" value="${tipo.precioUSD.toFixed(2)}" step="0.01" class="form-input form-input-sm precio-tipo-corte-edit" data-id="${tipo.id}" style="width:80px;" title="Editar precio en USD">
+                    </div>
+                    <div class="item-actions">
+                        <button class="button button-primary button-sm guardar-tipo-corte-edit" data-id="${tipo.id}" title="Guardar cambios en el precio"><i class="fas fa-save"></i></button>
+                        <button class="button button-danger button-sm eliminar-tipo-corte" data-id="${tipo.id}" title="Eliminar este tipo de corte"><i class="fas fa-trash"></i></button>
+                    </div>`;
+                listaTiposCorteGestion.appendChild(li);
+            });
+
+            document.querySelectorAll('.guardar-tipo-corte-edit').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = e.currentTarget.dataset.id;
+                    const itemLi = e.currentTarget.closest('.gestion-item');
+                    const nuevoPrecio = parseFloat(itemLi.querySelector('.precio-tipo-corte-edit').value);
+                    const tipoIndex = tiposDeCorte.findIndex(tc => tc.id === id);
+
+                    if (tipoIndex !== -1 && !isNaN(nuevoPrecio) && nuevoPrecio > 0) {
+                        tiposDeCorte[tipoIndex].precioUSD = nuevoPrecio;
+                        guardarTiposDeCorte();
+                        alert("Precio actualizado.");
+                    } else {
+                        alert("Precio inválido.");
+                        renderizarTiposDeCorteGestion();
+                    }
+                });
+            });
+
+            document.querySelectorAll('.eliminar-tipo-corte').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const id = e.currentTarget.dataset.id;
+                    const tipo = tiposDeCorte.find(tc => tc.id === id);
+                    if (tipo) {
+                        abrirConfirmModal('Eliminar Tipo de Corte', `¿Estás seguro de que quieres eliminar "${tipo.nombre}"?`, () => {
+                            tiposDeCorte = tiposDeCorte.filter(tc => tc.id !== id);
+                            guardarTiposDeCorte();
+                        });
+                    }
+                });
+            });
+        }
+
+        // --- UTILIDADES Y CARGA INICIAL ---
+        function cargarOpcionesBarberoEnSelects() {
+            const selects = [document.getElementById('barberoAsignado'), document.getElementById('reportBarbero')];
+            selects.forEach(select => {
+                if (select) {
+                    const currentValue = select.value;
+                    select.innerHTML = select.id === 'barberoAsignado' ? '<option value="">Cualquier barbero disponible</option>' : '<option value="">Todos los barberos</option>';
+                    barberos.forEach(barbero => {
+                        if (barbero.estado !== 'no disponible') {
+                            const option = document.createElement('option');
+                            option.value = barbero.nombre;
+                            option.textContent = barbero.nombre;
+                            select.appendChild(option);
+                        }
+                    });
+                    if (currentValue) select.value = currentValue;
+                }
+            });
+        }
+
+        function cargarOpcionesTiposDeCorteEnSelects(selectElement) {
+            if (!selectElement) return;
+            const currentValue = selectElement.value;
+            selectElement.innerHTML = '<option value="">Seleccione un tipo de corte...</option>';
+            tiposDeCorte.forEach(tipo => {
+                const option = document.createElement('option');
+                option.value = tipo.id;
+                option.textContent = `${tipo.nombre} ($${tipo.precioUSD.toFixed(2)})`;
+                selectElement.appendChild(option);
+            });
+            if (currentValue) selectElement.value = currentValue;
+
+            selectElement.addEventListener('change', (e) => {
+                const selectedId = e.target.value;
+                const infoDiv = document.getElementById('precioCorteSeleccionadoInfo');
+                const tipoSeleccionado = tiposDeCorte.find(tc => tc.id === selectedId);
+                if (tipoSeleccionado && infoDiv) {
+                    infoDiv.textContent = `Precio: $${tipoSeleccionado.precioUSD.toFixed(2)}`;
+                } else if (infoDiv) {
+                    infoDiv.textContent = '';
+                }
+            });
+        }
+
+        function obtenerTasaBCV() {
+            const tasaSpan = document.getElementById('tasaUSDBcv');
+            fetch('https://ve.dolarapi.com/v1/dolares/oficial')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    let primerResultado = null;
+                    if (data && Array.isArray(data) && data.length > 0) {
+                        primerResultado = data[0];
+                    } else if (data && typeof data === 'object' && data !== null && !Array.isArray(data)) {
+                        primerResultado = data;
+                    }
+
+                    if (primerResultado) {
+                        let tasaParaMostrar = null;
+                        if (primerResultado.promedio !== undefined && primerResultado.promedio !== null && !isNaN(parseFloat(primerResultado.promedio))) {
+                            tasaParaMostrar = parseFloat(primerResultado.promedio);
+                        }
+                        else if (primerResultado.venta !== undefined && primerResultado.venta !== null && !isNaN(parseFloat(primerResultado.venta))) {
+                            tasaParaMostrar = parseFloat(primerResultado.venta);
+                        }
+                        else if (primerResultado.compra !== undefined && primerResultado.compra !== null && !isNaN(parseFloat(primerResultado.compra))) {
+                            tasaParaMostrar = parseFloat(primerResultado.compra);
+                        }
+
+                        if (tasaParaMostrar !== null) {
+                            tasaSpan.textContent = tasaParaMostrar.toFixed(2);
+                            renderizarClientesAtendiendo();
+                            renderizarCortesFinalizadosHoy();
+                        } else {
+                            tasaSpan.textContent = 'No disponible (dato no numérico)';
+                        }
+                    } else {
+                        tasaSpan.textContent = 'No disponible (formato inesperado)';
+                    }
+                })
+                .catch(error => {
+                    console.error("Error al obtener la tasa del BCV:", error);
+                    tasaSpan.textContent = 'Error al cargar';
+                });
+        }
+
+        function actualizarReloj() {
+            const datetimeDiv = document.getElementById('datetime');
+            if (datetimeDiv) {
+                const now = new Date();
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+                datetimeDiv.textContent = now.toLocaleDateString('es-ES', options);
+            }
+        }
+
+        // --- LÓGICA DE CONFIGURACIÓN ---
+        const precioCorteGeneralConfigInput = document.getElementById('precioCorteGeneralConfig');
+        const guardarPrecioCorteGeneralButton = document.getElementById('guardarPrecioCorteGeneral');
+        const configMessagesDiv = document.getElementById('configMessages');
+
+        function cargarPrecioCorteGeneral() {
+            const guardado = localStorage.getItem('precioCorteGeneralBarberia');
+            if (guardado !== null) {
+                precioCorteGeneral = parseFloat(guardado);
+            }
+            if (precioCorteGeneralConfigInput) {
+                precioCorteGeneralConfigInput.value = precioCorteGeneral.toFixed(2);
+            }
+        }
+        function obtenerPrecioCorteGeneral() {
+            return precioCorteGeneral;
+        }
+        if (guardarPrecioCorteGeneralButton) {
+            guardarPrecioCorteGeneralButton.addEventListener('click', () => {
+                const nuevoPrecio = parseFloat(precioCorteGeneralConfigInput.value);
+                if (!isNaN(nuevoPrecio) && nuevoPrecio > 0) {
+                    precioCorteGeneral = nuevoPrecio;
+                    localStorage.setItem('precioCorteGeneralBarberia', precioCorteGeneral.toString());
+                    if (configMessagesDiv) {
+                        configMessagesDiv.textContent = 'Precio general guardado exitosamente.';
+                        configMessagesDiv.className = 'message success';
+                    }
+                } else {
+                     if (configMessagesDiv) {
+                        configMessagesDiv.textContent = 'Por favor, ingrese un precio válido.';
+                        configMessagesDiv.className = 'message error';
+                    }
+                }
+            });
+        }
+        
+        // --- REPORTES ---
+        const generateReportButton = document.getElementById('generateReportButton');
+        const reportTypeSelect = document.getElementById('reportType');
+        const reportDateInput = document.getElementById('reportDate');
+        const reportBarberoSelect = document.getElementById('reportBarbero');
+        const reportBarberoLabel = document.querySelector('label[for="reportBarbero"]');
+        const reporteResultadosDiv = document.getElementById('reporteResultados');
+
+        if(reportTypeSelect) {
+            reportTypeSelect.addEventListener('change', function() {
+                if (this.value === 'ventasBarbero') {
+                    reportBarberoSelect.classList.remove('hidden');
+                    if(reportBarberoLabel) reportBarberoLabel.classList.remove('hidden');
+                } else {
+                    reportBarberoSelect.classList.add('hidden');
+                     if(reportBarberoLabel) reportBarberoLabel.classList.add('hidden');
+                }
+            });
+        }
+        if(reportDateInput) reportDateInput.valueAsDate = new Date();
+
+
+        if(generateReportButton){
+            generateReportButton.addEventListener('click', () => {
+                const tipo = reportTypeSelect.value;
+                const fecha = reportDateInput.value;
+                const barberoSeleccionado = reportBarberoSelect.value;
+
+                if (!fecha) {
+                    alert("Por favor, seleccione una fecha para el reporte.");
+                    return;
+                }
+                const fechaSeleccionada = new Date(fecha + "T00:00:00");
+
+                let cortesFiltrados = historialCortes.filter(corte => {
+                    const fechaCorte = new Date(corte.horaFinalizacion);
+                    return fechaCorte.toDateString() === fechaSeleccionada.toDateString();
+                });
+
+                if (tipo === 'ventasBarbero' && barberoSeleccionado) {
+                    cortesFiltrados = cortesFiltrados.filter(corte => corte.barberoAtendiendo === barberoSeleccionado);
+                }
+
+                generarTablaReporte(cortesFiltrados, tipo, barberoSeleccionado);
+            });
+        }
+
+        function generarTablaReporte(cortes, tipoReporte, barberoSeleccionado = null) {
+            if (!reporteResultadosDiv) return;
+            reporteResultadosDiv.innerHTML = ''; 
+
+            if (cortes.length === 0) {
+                reporteResultadosDiv.innerHTML = '<p>No se encontraron datos para este reporte.</p>';
+                return;
+            }
+
+            let tituloReporte = `Reporte de ${tipoReporte === 'ventasDia' ? 'Ventas del Día' : `Ventas para ${barberoSeleccionado || 'Todos los Barberos'}`}`;
+            let html = `<h3>${tituloReporte} (${new Date(reportDateInput.value + "T00:00:00").toLocaleDateString()})</h3>`;
+            html += '<div class="table-responsive-container">'; // Envoltura para scroll
+            html += '<table class="report-table">';
+            html += '<thead><tr><th>Cliente</th><th>Barbero</th><th>Tipo Corte</th><th>Precio USD</th><th>Precio Bs</th><th>Método Pago</th><th>Hora</th></tr></thead><tbody>';
+
+            let totalUSD = 0;
+            let totalBs = 0;
+
+            cortes.forEach(corte => {
+                html += `<tr>
+                            <td>${corte.nombreCompleto}</td>
+                            <td>${corte.barberoAtendiendo}</td>
+                            <td>${corte.tipoCorte || 'General'}</td>
+                            <td>$${parseFloat(corte.precioCorte).toFixed(2)}</td>
+                            <td>Bs. ${parseFloat(corte.precioBs || 0).toFixed(2)}</td>
+                            <td>${corte.metodoPago || 'N/A'}</td>
+                            <td>${new Date(corte.horaFinalizacion).toLocaleTimeString()}</td>
+                         </tr>`;
+                totalUSD += parseFloat(corte.precioCorte);
+                totalBs += parseFloat(corte.precioBs || 0);
+            });
+
+            html += '</tbody><tfoot>';
+            html += `<tr><td colspan="3"><strong>Total General</strong></td><td><strong>$${totalUSD.toFixed(2)}</strong></td><td><strong>Bs. ${totalBs.toFixed(2)}</strong></td><td colspan="2"></td></tr>`;
+            html += '</tfoot></table>';
+            html += '</div>'; // Cierre de envoltura
+            reporteResultadosDiv.innerHTML = html;
+        }
+
+
+        // --- INICIALIZAR LA APP ---
+        initApp();
+
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+
+        if (togglePassword && passwordInput) {
+            togglePassword.addEventListener('click', function () {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.classList.toggle('fa-eye');
+                this.classList.toggle('fa-eye-slash');
+            });
+        }
+    });
+</script>
+
+<footer id="page-footer">
+    <p>Sistema creado por: Josue sandova</p>
+    <p>Soporte: <a href="mailto:sandoval708@gmail.com">sandoval708@gmail.com</a></p>
+</footer>
+
+</body>
+</html>
+

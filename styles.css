@@ -1,0 +1,855 @@
+:root {
+  /* Colors */
+  --primary-color: #2c3e50;        /* Azul Medianoche */
+  --primary-color-hover: #34495e;  /* Azul Asfalto Húmedo */
+  --accent-color: #e67e22;         /* Naranja Zanahoria */
+  --accent-color-hover: #d35400;   /* Naranja Calabaza */
+  --success-color: #27ae60;        /* Verde Esmeralda */
+  --success-color-hover: #229954;  /* Verde Esmeralda Oscuro */
+  --danger-color: #e74c3c;         /* Rojo Alizarina (Intenso) */
+  --danger-color-hover: #c0392b;    /* Rojo Granada (Intenso Hover) */
+  --warning-color: #f39c12;        /* Naranja (Advertencia) */
+  --warning-color-hover: #e67e22;  /* Naranja Zanahoria (Advertencia Hover - usa acento) */
+  --dark-color: #1f2c39;           /* Azul Muy Oscuro (para fondos de sidebar/topbar) */
+  --light-color: #ecf0f1;          /* Gris Muy Claro "Nubes" (para fondos de panel, texto en oscuro) */
+  --grey-light: #f8f9f9;           /* Gris aún más claro para variaciones sutiles */
+  --grey-medium: #bdc3c7;          /* Plata */
+  --grey-dark: #95a5a6;            /* Amianto */
+  --grey-border: #bdc3c7;          /* Plata (para bordes consistentes) */
+  --text-color: #34495e;           /* Azul Asfalto Húmedo (texto principal sobre claro) */
+  --grey-element-bg: #e8eaed;      /* Gris claro para fondos de elementos específicos */
+  --text-muted: #7f8c8d;           /* Hormigón (para texto menos importante) */
+  --text-light: #95a5a6;           /* Amianto (para texto aún más claro o deshabilitado) */
+
+  /* Spacing & Sizing */
+  --top-bar-height: 50px; /* Altura de la barra superior */
+  --sidebar-width-expanded: 220px;
+  --sidebar-width-collapsed: 60px; /* Ancho cuando está colapsado */
+  --padding-xs: 3px;
+  --padding-sm: 5px;
+  --padding-md: 10px;
+  --padding-lg: 15px;
+  --padding-xl: 20px;
+  --margin-xs: 3px;
+  --margin-sm: 5px;
+  --margin-md: 10px;
+  --margin-lg: 15px;
+  --margin-xl: 20px;
+
+  /* Borders */
+  --border-radius-sm: 4px;
+  --border-radius-md: 6px;
+  --border-radius-lg: 8px;
+
+  /* Message Colors */
+  --message-success-text: #155724;
+  --message-success-bg: #d4edda;
+  --message-success-border: #c3e6cb;
+  --message-error-text: #721c24;
+  --message-error-bg: #f8d7da;
+  --message-error-border: #f5c6cb;
+  --message-info-text: #0c5460;
+  --message-info-bg: #d1ecf1;
+  --message-info-border: #bee5eb;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.6;
+  color: var(--text-color);
+  background-color: var(--grey-light);
+  transition: padding-left 0.3s ease-in-out, background-image 0.3s ease-in-out; /* Transición para el main content y el fondo */
+}
+
+/* Estilo para cuando la página de login está activa y debe tener un fondo de imagen */
+body.login-active-background {
+  background-image: url('images/login-background.jpg'); /* Asegúrate que la ruta sea correcta */
+  background-size: cover;
+  background-position: center center; /* Centrado más explícito */
+  background-repeat: no-repeat;
+  background-attachment: fixed; /* Mantiene la imagen fija mientras se hace scroll */
+}
+
+body.sidebar-expanded {
+  padding-left: var(--sidebar-width-expanded);
+}
+body:not(.sidebar-expanded) {
+  padding-left: var(--sidebar-width-collapsed);
+}
+
+
+/* --- Top Bar --- */
+#top-bar {
+    background-color: var(--dark-color);
+    color: var(--light-color);
+    padding: 0 var(--padding-lg);
+    height: var(--top-bar-height);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed; /* Fija la barra superior */
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000; /* Asegura que esté por encima de otros elementos */
+}
+
+#sidebar-toggle {
+    background: none;
+    border: none;
+    color: var(--light-color);
+    font-size: 1.5em;
+    cursor: pointer;
+    padding: var(--padding-sm) var(--padding-md);
+}
+#sidebar-toggle:hover {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.app-title-container {
+    display: flex;
+    align-items: center; /* Centra verticalmente el logo y el título */
+    gap: 10px; /* Espacio entre el logo y el título */
+}
+
+#top-bar-logo {
+    height: 30px;
+    width: auto;
+    display: block;
+}
+
+#app-title {
+    font-size: 1.4em;
+    font-weight: bold;
+    font-family: "Old English Text MT", serif;
+}
+
+.top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: var(--margin-lg);
+}
+#user-info {
+    font-size: 0.9em;
+}
+#dolar-bcv {
+    font-size: 0.9em;
+    background-color: var(--primary-color);
+    padding: var(--padding-xs) var(--padding-sm);
+    border-radius: var(--border-radius-sm);
+}
+#datetime {
+    font-size: 0.9em;
+}
+
+
+/* --- Login Section --- */
+#login-section {
+   background-color: rgba(0, 0, 0, 0.65);
+   color: var(--light-color);
+   padding: var(--padding-xl);
+   border-radius: var(--border-radius-lg);
+   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+   max-width: 450px;
+   margin: 80px auto 20px auto;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+}
+
+.login-logo-container {
+   margin-bottom: var(--margin-md);
+   text-align: center;
+}
+
+#login-logo {
+   max-width: 120px;
+   height: auto;
+   display: block;
+   margin-left: auto;
+   margin-right: auto;
+}
+
+
+#login-section h2 {
+    color: var(--light-color);
+    margin-bottom: var(--margin-lg);
+    text-align: center;
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: var(--margin-lg);
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 1em;
+}
+
+.password-toggle-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 1em;
+}
+
+#login-section .form-label {
+    color: var(--grey-light);
+    display: block;
+    margin-bottom: var(--margin-sm);
+}
+
+
+#login-section .form-input {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: var(--dark-color);
+    border: 1px solid var(--grey-dark);
+}
+#login-section .form-input::placeholder {
+    color: var(--text-muted);
+}
+
+#login-section .form-input-lg {
+    padding-left: 40px;
+    padding-right: 40px;
+}
+
+
+#login-section .error-message {
+    background-color: rgba(217, 83, 79, 0.8);
+    color: var(--light-color);
+    padding: var(--padding-md);
+    border-radius: var(--border-radius-sm);
+    margin-top: var(--margin-md);
+    text-align: center;
+}
+
+
+/* --- App Section (Sidebar y Main Content) --- */
+#app-section {
+    display: flex;
+    padding-top: var(--top-bar-height);
+}
+
+#sidebar {
+    width: var(--sidebar-width-collapsed);
+    background-color: var(--dark-color);
+    color: var(--light-color);
+    padding-top: var(--padding-lg);
+    height: calc(100vh - var(--top-bar-height));
+    position: fixed;
+    left: 0;
+    top: var(--top-bar-height);
+    overflow-y: auto;
+    transition: width 0.3s ease-in-out;
+    z-index: 900;
+}
+#sidebar.collapsed {
+    width: var(--sidebar-width-collapsed);
+}
+#sidebar:not(.collapsed) {
+    width: var(--sidebar-width-expanded);
+}
+
+#sidebar button {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: var(--light-color);
+    padding: var(--padding-md) var(--padding-lg);
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-size: 1em;
+    white-space: nowrap;
+    overflow: hidden;
+}
+#sidebar button:hover {
+    background-color: var(--primary-color);
+}
+#sidebar button i.icon {
+    margin-right: var(--margin-md);
+    font-size: 1.2em;
+    width: 24px;
+    text-align: center;
+}
+#sidebar.collapsed button span {
+    display: none;
+}
+#sidebar:not(.collapsed) button span {
+    display: inline;
+}
+
+
+#main-content {
+    flex-grow: 1;
+    padding: var(--padding-lg);
+    transition: margin-left 0.3s ease-in-out;
+    background-color: var(--light-color);
+    min-height: calc(100vh - var(--top-bar-height));
+}
+
+
+/* --- Panels --- */
+.panel {
+    background-color: var(--light-color);
+    padding: var(--padding-lg);
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: var(--margin-xl);
+}
+.panel-title {
+    margin-top: 0;
+    margin-bottom: var(--margin-lg);
+    color: var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+    padding-bottom: var(--padding-sm);
+}
+
+/* --- Barberos en Línea (Visual) --- */
+#barberos-linea {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--margin-lg);
+    margin-bottom: var(--margin-xl);
+}
+.barbero-estacion-visual {
+    background-color: var(--grey-element-bg);
+    border: 1px solid var(--grey-dark);
+    border-radius: calc(var(--border-radius-sm) + 2px);
+    padding: var(--padding-lg);
+    text-align: center;
+    min-width: 150px;
+    flex: 1;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.barbero-estacion-visual .barbero-nombre {
+    font-weight: bold;
+    font-size: 1.1em;
+    margin-bottom: var(--margin-sm);
+}
+.barbero-estacion-visual .barbero-estado {
+    font-size: 0.9em;
+    margin-bottom: var(--margin-md);
+}
+.barbero-estacion-visual .barbero-estado span {
+    font-weight: bold;
+}
+.barbero-estacion-visual.disponible .barbero-estado span {
+    color: var(--success-color);
+}
+.barbero-estacion-visual.ocupado .barbero-estado span {
+    color: var(--danger-color);
+}
+.barbero-estacion-visual.no-disponible .barbero-estado span {
+    color: var(--warning-color);
+}
+
+/* --- Colas de Clientes --- */
+#colaEspera, #colaClientes {
+    margin-bottom: var(--margin-xl);
+}
+#colaEspera h3, #colaClientes h3 {
+    margin-bottom: var(--margin-md);
+    color: var(--text-muted);
+}
+#listaColaEspera, #listaClientesAtendiendo {
+    list-style: none;
+    padding-left: 0;
+}
+#listaColaEspera li, #listaClientesAtendiendo li {
+    background-color: var(--grey-light);
+    padding: var(--padding-md);
+    margin-bottom: var(--margin-sm);
+    border-radius: var(--border-radius-sm);
+    border-left: 4px solid var(--primary-color);
+    display: flex;
+    flex-direction: column;
+    gap: var(--padding-sm);
+}
+#listaClientesAtendiendo li {
+    border-left-color: var(--success-color);
+}
+
+#listaColaEspera li span,
+#listaClientesAtendiendo li span {
+    /* Estilos específicos para spans dentro de los items de lista si son necesarios */
+}
+
+/* --- Gestión de Barberos Panel --- */
+#gestionBarberosPanel h3 {
+    margin-top: var(--margin-lg);
+    margin-bottom: var(--margin-md);
+}
+#listaBarberosGestion {
+    list-style: none;
+    padding: 0;
+}
+#listaBarberosGestion li.gestion-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--padding-md);
+    border-bottom: 1px solid var(--grey-dark);
+}
+#listaBarberosGestion li.gestion-item:last-child {
+    border-bottom: none;
+}
+#listaBarberosGestion .item-name {
+    flex-grow: 1;
+}
+#listaBarberosGestion .editar-barbero-form {
+    display: flex;
+    gap: var(--margin-sm);
+    align-items: center;
+    flex-grow: 1;
+}
+#listaBarberosGestion .editar-barbero-form input {
+    flex-grow: 1;
+}
+#listaBarberosGestion button {
+    margin-left: var(--margin-sm);
+}
+#nuevoBarberoForm {
+    margin-top: var(--margin-md);
+    padding: var(--padding-md);
+    background-color: var(--grey-element-bg);
+    border-radius: var(--border-radius-sm);
+    display: flex;
+    gap: var(--margin-sm);
+    align-items: center;
+}
+#nuevoBarberoForm input {
+    flex-grow: 1;
+}
+
+
+/* --- Form Elements --- */
+.form-label {
+    display: block;
+    margin-bottom: var(--margin-xs);
+    font-weight: bold;
+    font-size: 0.9em;
+    color: var(--text-muted);
+}
+.form-input, .form-select {
+    width: 100%;
+    padding: var(--padding-sm) var(--padding-md);
+    margin-bottom: var(--margin-md);
+    border: 1px solid var(--grey-border);
+    border-radius: var(--border-radius-sm);
+    font-size: 1em;
+    background-color: var(--light-color);
+}
+.form-input:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+.form-input-sm, .form-select-sm {
+    padding: calc(var(--padding-sm) / 1.5) calc(var(--padding-md) / 1.5);
+    font-size: 0.9em;
+}
+.form-input-md, .form-select-md {
+    padding: var(--padding-sm) var(--padding-md);
+    font-size: 1em;
+}
+.form-input-lg, .form-select-lg {
+    padding: var(--padding-md) var(--padding-lg);
+    font-size: 1.1em;
+}
+
+
+/* --- Buttons --- */
+.button {
+    display: inline-block;
+    padding: var(--padding-md) var(--padding-lg);
+    font-size: 1em;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    color: var(--light-color);
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, filter 0.2s ease-in-out;
+}
+.button:hover {
+    background-color: var(--primary-color-hover);
+}
+.button:disabled {
+    background-color: var(--grey-medium);
+    color: var(--text-light);
+    cursor: not-allowed;
+}
+
+   /* Button Sizes */
+   .button-sm {
+      padding: calc(var(--padding-sm) / 1.5) calc(var(--padding-md) / 1.5);
+      font-size: 0.8em;
+   }
+   .button-lg {
+      padding: var(--padding-lg) var(--padding-xl);
+      font-size: 1.1em;
+   }
+   .button-block {
+      display: block;
+      width: 100%;
+   }
+
+   /* Button Colors */
+   .button-primary {
+    background-color: var(--primary-color);
+   }
+   .button-primary:hover {
+    background-color: var(--primary-color-hover);
+   }
+   .button-success {
+    background-color: var(--success-color);
+   }
+   .button-success:hover {
+    background-color: var(--success-color-hover);
+   }
+   .button-danger {
+    background-color: var(--danger-color);
+   }
+   .button-danger:hover {
+      background-color: var(--danger-color-hover);
+   }
+   .button-warning {
+    background-color: var(--warning-color);
+    color: var(--dark-color);
+   }
+   .button-warning:hover {
+      background-color: var(--warning-color-hover);
+   }
+   .button-secondary {
+      background-color: var(--accent-color);
+      color: var(--light-color);
+   }
+   .button-secondary:hover {
+      background-color: var(--accent-color-hover);
+   }
+
+
+/* --- Modal --- */
+.modal {
+    position: fixed;
+    z-index: 1050;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.modal-content {
+    background-color: var(--light-color);
+    margin: auto;
+    padding: var(--padding-xl);
+    border: 1px solid var(--grey-border);
+    border-radius: var(--border-radius-lg);
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: var(--margin-lg);
+    color: var(--primary-color);
+}
+.close-button {
+    color: var(--text-light);
+    position: absolute;
+    top: var(--padding-md);
+    right: var(--padding-lg);
+    font-size: 1.8em;
+    font-weight: bold;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+.close-button:hover,
+.close-button:focus {
+    color: var(--dark-color);
+    text-decoration: none;
+}
+
+
+/* --- Messages & Alerts --- */
+.message {
+    padding: var(--padding-md);
+    margin-top: var(--margin-md);
+    margin-bottom: var(--margin-md);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid transparent;
+}
+   .message.success {
+      color: var(--message-success-text);
+      background-color: var(--message-success-bg);
+      border-color: var(--message-success-border);
+   }
+   .message.error {
+      color: var(--message-error-text);
+      background-color: var(--message-error-bg);
+      border-color: var(--message-error-border);
+   }
+   .message.info {
+      color: var(--message-info-text);
+      background-color: var(--message-info-bg);
+      border-color: var(--message-info-border);
+   }
+.error-message {
+    color: var(--danger-color);
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: var(--padding-sm);
+    margin-top: var(--margin-sm);
+    border-radius: var(--border-radius-sm);
+    font-size: 0.9em;
+}
+
+
+/* --- Reportes --- */
+.report-container {
+    margin-top: var(--margin-lg);
+    padding: var(--padding-md);
+    background-color: var(--grey-element-bg);
+    border-radius: var(--border-radius-sm);
+}
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: var(--margin-md);
+}
+.report-table th, .report-table td {
+    border: 1px solid var(--grey-dark);
+    padding: var(--padding-sm) var(--padding-md);
+    text-align: left;
+}
+.report-table th {
+    background-color: var(--primary-color);
+    color: var(--light-color);
+    font-weight: bold;
+}
+.report-table tbody tr:nth-child(even) {
+    background-color: var(--grey-light);
+}
+.report-table tfoot td {
+    font-weight: bold;
+    background-color: var(--grey-medium);
+}
+
+
+/* --- Utility Classes --- */
+.hidden {
+    display: none !important;
+}
+hr {
+    border: 0;
+    height: 1px;
+    background-color: var(--grey-dark);
+    margin-top: var(--margin-lg);
+    margin-bottom: var(--margin-lg);
+}
+
+/* Contenedor para hacer tablas responsivas */
+.table-responsive-container {
+    overflow-x: auto; /* Permite scroll horizontal si la tabla es más ancha que el contenedor */
+    margin-bottom: var(--margin-md); /* Espacio debajo de la tabla */
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 768px) {
+    body.sidebar-expanded {
+        padding-left: 0;
+    }
+    body:not(.sidebar-expanded) {
+        padding-left: 0;
+    }
+
+    #sidebar {
+        z-index: 1100;
+    }
+
+    #main-content {
+        margin-left: 0 !important;
+        padding: var(--padding-md); /* Reducir padding general del main-content en móviles */
+    }
+
+    #top-bar {
+        padding: 0 var(--padding-md);
+    }
+    #app-title {
+        font-size: 1.1em; /* Reducir un poco el título de la app */
+    }
+    #top-bar-logo {
+        height: 25px; /* Reducir logo en top-bar */
+    }
+    .top-bar-right {
+        gap: var(--margin-sm); /* Reducir espacio entre elementos de la derecha */
+    }
+    #dolar-bcv, #user-info, #datetime {
+        font-size: 0.75em; /* Reducir texto de info en top-bar */
+        padding: var(--padding-xs);
+    }
+    #datetime {
+        display: none; /* Ocultar fecha/hora completa si ocupa mucho, o simplificarla */
+    }
+
+
+    .modal-content {
+        width: 95%;
+        padding: var(--padding-md); /* Reducir padding en modales */
+    }
+    .modal-content h2 {
+        font-size: 1.2em; /* Reducir títulos en modales */
+    }
+
+    #barberos-linea {
+        flex-direction: column;
+    }
+    .barbero-estacion-visual {
+        min-width: auto;
+        width: 100%;
+        padding: var(--padding-md);
+    }
+    .barbero-estacion-visual .barbero-nombre {
+        font-size: 1em;
+    }
+
+    /* Ajustes para formularios en móviles */
+    .form-input, .form-select {
+        font-size: 1em; /* Asegurar que el tamaño de fuente no sea demasiado pequeño para la entrada (min 16px para evitar zoom en iOS) */
+        padding: var(--padding-sm); /* Ajustar padding de inputs */
+    }
+    #login-section .form-input-lg { /* Específico para login, mantener padding para iconos */
+        padding-left: 40px;
+        padding-right: 40px;
+    }
+
+
+    /* Ajustes para los paneles de contenido principal */
+    #main-content .panel {
+        padding: var(--padding-md); /* Reducir padding en paneles */
+    }
+    .panel-title {
+        font-size: 1.3em; /* Reducir tamaño de los títulos de panel */
+        margin-bottom: var(--margin-md);
+    }
+
+    /* Botones */
+    .button {
+        padding: var(--padding-sm) var(--padding-md); /* Ajustar padding de botones */
+        font-size: 0.9em;
+    }
+    .button-lg { /* Ajustar botones grandes también */
+        padding: var(--padding-md) var(--padding-lg);
+        font-size: 1em;
+    }
+    #login-section .button-lg { /* Botón de login puede mantener su tamaño original o ajustarse menos */
+         padding: var(--padding-md) var(--padding-lg);
+         font-size: 1.1em;
+    }
+
+    /* Ajustar elementos específicos de formularios si es necesario */
+    #nuevoBarberoForm, #nuevoUsuarioForm, #nuevoTipoCorteForm {
+        flex-direction: column; /* Apilar elementos de formularios de creación */
+        gap: var(--margin-sm);
+    }
+    #nuevoBarberoForm input, #nuevoUsuarioForm input, #nuevoUsuarioForm select,
+    #nuevoTipoCorteForm input {
+        width: 100%; /* Inputs al 100% del ancho */
+    }
+    #nuevoTipoCorteForm input[type="number"] {
+        width: 100% !important; /* Sobrescribir el width fijo */
+    }
+
+    /* Listas de gestión */
+    .gestion-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--margin-xs);
+    }
+    .gestion-item .item-actions {
+        width: 100%;
+        justify-content: flex-end; /* Alinea botones de acción a la derecha */
+    }
+    .gestion-item .item-actions button {
+        flex-grow: 1; /* Para que los botones ocupen espacio si son pocos */
+        max-width: 100px; /* Limitar ancho si son muchos */
+    }
+    .editar-tipo-corte-form {
+        flex-direction: column;
+        align-items: flex-start !important; /* Importante para sobrescribir inline style */
+        width: 100%;
+    }
+    .editar-tipo-corte-form input {
+        width: 100% !important; /* Sobrescribir el width fijo */
+    }
+
+    /* Cola de clientes atendiendo */
+    #listaClientesAtendiendo li {
+        font-size: 0.9em; /* Reducir un poco el texto para que quepa mejor */
+    }
+    .metodo-pago-seleccion {
+        padding: var(--padding-xs);
+    }
+    .detalles-pago-adicional input {
+        font-size: 0.9em;
+    }
+}
+
+/* --- Footer --- */
+#page-footer {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    padding: var(--padding-sm) var(--padding-md);
+    background-color: rgba(31, 44, 57, 0.9);
+    color: var(--grey-medium);
+    font-size: 0.75em;
+    text-align: right;
+    z-index: 950;
+    border-top-left-radius: var(--border-radius-md);
+}
+
+body.login-active-background #page-footer {
+    display: block;
+}
+
+#page-footer p {
+    margin: 3px 0;
+}
+
+#page-footer a {
+    color: var(--accent-color);
+    text-decoration: none;
+}
+
+#page-footer a:hover {
+    text-decoration: underline;
+}
