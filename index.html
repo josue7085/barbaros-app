@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Barbería Barba´ros</title>
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="styles.css">
     <!-- jsPDF para generar PDF (añadir si no la tienes) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -55,7 +56,7 @@
     <div id="login-section">
         <!-- Logo de la Barbería -->
         <div class="login-logo-container">
-            <img src="images/logo.PNG" alt="Logo Barbería Barba´ros" id="login-logo">
+            <img src="images/logo.PNG" alt="Logo Barbería" id="login-logo">
         </div>
         <h2 style="margin-bottom: var(--margin-xl);">Barbería Barba´ros</h2>
         <form id="loginForm">
@@ -1491,6 +1492,19 @@
                 this.classList.toggle('fa-eye-slash');
             });
         }
+
+        // Registrar el Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js') // Asegúrate que la ruta a sw.js sea correcta
+                    .then(registration => {
+                        console.log('ServiceWorker registrado con éxito: ', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Fallo en el registro del ServiceWorker: ', error);
+                    });
+            });
+        }
     });
 </script>
 
@@ -1501,4 +1515,3 @@
 
 </body>
 </html>
-
