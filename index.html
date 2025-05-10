@@ -56,7 +56,7 @@
     <div id="login-section">
         <!-- Logo de la Barbería -->
         <div class="login-logo-container">
-            <img src="images/logo.PNG" alt="Logo Barbería" id="login-logo">
+            <img src="images/logo.PNG" alt="Logo Barbería Barba´ros" id="login-logo">
         </div>
         <h2 style="margin-bottom: var(--margin-xl);">Barbería Barba´ros</h2>
         <form id="loginForm">
@@ -313,6 +313,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
+        'use strict'; // Buena práctica
         // --- REFERENCIAS A ELEMENTOS DEL DOM ---
         const loginSection = document.getElementById('login-section');
         const appSection = document.getElementById('app-section');
@@ -1496,7 +1497,7 @@
         // Registrar el Service Worker para PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js') // Asegúrate que la ruta a sw.js sea correcta
+                navigator.serviceWorker.register('/sw.js') // Asegúrate que la ruta a sw.js sea correcta (raíz del sitio)
                     .then(registration => {
                         console.log('ServiceWorker registrado con éxito: ', registration.scope);
                     })
