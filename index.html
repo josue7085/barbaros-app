@@ -1497,7 +1497,7 @@
         // Registrar el Service Worker para PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js') // Asegúrate que la ruta a sw.js sea correcta (raíz del sitio)
+                navigator.serviceWorker.register('sw.js') // Asegúrate que la ruta a sw.js sea correcta (raíz del sitio)
                     .then(registration => {
                         console.log('ServiceWorker registrado con éxito: ', registration.scope);
                     })
